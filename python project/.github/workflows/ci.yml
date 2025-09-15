@@ -1,0 +1,38 @@
+# 워크플로우의 이름을 지정합니다.
+name: CI-Pipeline
+
+# 워크플로우가 언제 실행될지를 정의합니다.
+on:
+  push:
+    branches: [ "main" ] # main 브랜치에 push가 발생했을 때 실행됩니다.
+
+# 워크플로우가 수행할 작업(job)들을 정의합니다.
+jobs:
+  # 'build-and-push'라는 이름의 작업을 정의합니다.
+  build-and-push:
+    # 이 작업이 실행될 가상 환경을 지정합니다. (Ubuntu 최신 버전)
+    runs-on: ubuntu-latest
+
+    # 이 작업에서 수행할 단계(step)들을 순서대로 정의합니다.
+    steps:
+      # 1. 소스 코드 체크아웃
+      # GitHub 저장소의 코드를 가상 환경으로 가져옵니다.
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      # 2. Docker Hub 로그인
+      # GitHub Secrets에 저장된 정보를 사용하여 Docker Hub에 로그인합니다.
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. Docker 이미지 빌드 및 푸시
+      # Dockerfile을 사용하여 이미지를 빌드하고, Docker Hub에 푸시합니다.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-short-url-app:latest
